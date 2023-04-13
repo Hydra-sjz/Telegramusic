@@ -1,21 +1,16 @@
-FROM python:3.9-alpine3.15
+FROM archlinux/archlinux:latest
 
-RUN apk add --no-cache ffmpeg alpine-sdk python3-dev py3-setuptools tiff-dev jpeg-dev openjpeg-dev zlib-dev freetype-dev lcms2-dev \
-    libwebp-dev tcl-dev tk-dev harfbuzz-dev fribidi-dev libimagequant-dev \
-    libxcb-dev libpng-dev
+# Install the base packages and any dependencies
+RUN pacman -Syu --noconfirm && pacman -S --noconfirm python-pip git
 
-WORKDIR /usr/src/app
+# Changing the working directory
+WORKDIR /app
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy the requirements.txt file into working directory and install the packages
+COPY requirements.txt .
+RUN pip3 install -U -r requirements.txt
 
-COPY patches/deezer_settings.py ./patches/deezer_settings.py
-COPY langs.json ./
-COPY main.py ./
+# Copy all the files into working directory
+COPY . .
 
-# Temp fix to avoid flac download
-RUN echo "Temp FLAC fix" && \
-    mv ./patches/deezer_settings.py /usr/local/lib/python3.9/site-packages/deezloader/deezloader/deezer_settings.py \
-    && rm -rf ./patches
-
-CMD [ "python", "./main.py" ]
+CMD ["python3", "main.py"]
